@@ -558,7 +558,7 @@ Machine code:
 
 ### PRN
 
-`PRN register` pseudo-instruction
+` register` pseudo-instruction
 
 Print numeric value stored in the given register.
 
