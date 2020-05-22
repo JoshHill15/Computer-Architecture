@@ -16,10 +16,21 @@ class CPU:
             "10000010": "LDI",
             "01000111": "PRN",
             "10100010": "MUL",
+            "10100000": "ADD",
             "01000101": "PUSH",
-            "01000110": "POP"
+            "01000110": "POP",
+            "01010000": "CALL",
+            "00010001": "RET",
+            "10100111": "CMP",
+            "01010100": "JMP",
+            "01010101": "JEQ",
+            "01010110": "JNE"
+
         }
         self.sp = 7
+        self.less_than = 249
+        self.equal = 250
+        self.greater_than = 251
 
     def load(self):
         """Load a program into memory."""
@@ -80,6 +91,26 @@ class CPU:
             if instruction == "HLT":
                 more_commands = False
 
+            elif instruction == "JEQ":
+                if self.ram[self.equal] == 1:
+                    self.jump(operand_a)
+
+            elif instruction == "JNE":
+                if self.ram[self.equal] == 0:
+                    self.jump(operand_a)
+
+            elif instruction == "JMP":
+                self.jump(operand_a)
+
+            elif instruction == "CALL":
+                self.stack_push(self.pc)
+                val = self.reg_read(operand_a)
+                self.pc = val
+
+            elif instruction == "RET":
+                val = self.stack_pop()
+                self.pc = val
+
             elif split_instruction[2] == "1":
                 self.alu(instruction, operand_a, operand_b)
 
@@ -93,10 +124,10 @@ class CPU:
             elif instruction == "PUSH":
                 self.reg[self.sp] -= 1
                 val = self.reg_read(operand_a)
-                self.ram[self.reg[self.sp]] = val
+                self.stack_push(val)
 
             elif instruction == "POP":
-                val = self.ram[self.reg[self.sp]]
+                val = self.stack_pop()
                 self.reg_write(operand_a, val)
                 self.reg[self.sp] += 1
 
@@ -114,6 +145,17 @@ class CPU:
             mdr = int(mdr, 2)
         self.reg[mar] = mdr
 
+    def jump(self, op_a):
+        val = self.reg_read(op_a)
+        self.pc = val
+
+    def stack_push(self, val):
+        self.ram[self.reg[self.sp]] = val
+
+    def stack_pop(self):
+        val = self.ram[self.reg[self.sp]]
+        return val
+
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         reg_a = int(reg_a, 10)
@@ -129,6 +171,13 @@ class CPU:
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.ram[self.equal] = 1
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.ram[self.less_than] = 1
+            else:
+                self.ram[self.greater_than] = 1
         else:
             raise Exception("Unsupported ALU operation")
 
