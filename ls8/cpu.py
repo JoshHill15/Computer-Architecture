@@ -28,9 +28,7 @@ class CPU:
 
         }
         self.sp = 7
-        self.less_than = 249
-        self.equal = 250
-        self.greater_than = 251
+        self.cmp = 6
 
     def load(self):
         """Load a program into memory."""
@@ -92,11 +90,11 @@ class CPU:
                 more_commands = False
 
             elif instruction == "JEQ":
-                if self.ram[self.equal] == 1:
+                if self.reg[self.cmp] == 0b10:
                     self.jump(operand_a)
 
             elif instruction == "JNE":
-                if self.ram[self.equal] == 0:
+                if self.reg[self.cmp] != 0b10:
                     self.jump(operand_a)
 
             elif instruction == "JMP":
@@ -173,11 +171,13 @@ class CPU:
             self.reg[reg_a] /= self.reg[reg_b]
         elif op == "CMP":
             if self.reg[reg_a] == self.reg[reg_b]:
-                self.ram[self.equal] = 1
+                self.reg[self.cmp] = 0b10
+
             elif self.reg[reg_a] < self.reg[reg_b]:
-                self.ram[self.less_than] = 1
+                self.ram[self.cmp] = 0b1
+
             else:
-                self.ram[self.greater_than] = 1
+                self.ram[self.cmp] = 0b11
         else:
             raise Exception("Unsupported ALU operation")
 
